@@ -6,7 +6,10 @@ import (
 )
 
 func main() {
-	fmt.Println(getLastWeek())
+	today, lw := getLastWeek()
+
+	from, to := lw.Unix(), today.Unix()
+	fmt.Println(from, to)
 }
 
 var nowFunc func() time.Time
