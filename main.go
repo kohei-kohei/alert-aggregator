@@ -2,13 +2,50 @@ package main
 
 import (
 	"fmt"
+	"log"
+	"strconv"
 	"time"
+
+	"github.com/caarlos0/env"
 )
 
+type config struct {
+	Since string `env:"SINCE"`
+	Until string `env:"UNTIL"`
+}
+
 func main() {
+	cfg := config{}
+	if err := env.Parse(&cfg); err != nil {
+		log.Panic(err)
+	}
+
 	today, lw := getLastWeek()
 
-	from, to := lw.Unix(), today.Unix()
+	var since time.Time
+	if cfg.Since == "" {
+		since = lw
+	} else {
+		var err error
+		since, err = time.Parse(time.RFC3339, cfg.Since)
+		if err != nil {
+			log.Panic(err)
+		}
+	}
+
+	var until time.Time
+	if cfg.Until == "" {
+		until = today
+	} else {
+		var err error
+		until, err = time.Parse(time.RFC3339, cfg.Until)
+		if err != nil {
+			log.Panic(err)
+		}
+	}
+
+	from, to := strconv.FormatInt(since.Unix(), 10), strconv.FormatInt(until.Unix(), 10)
+	fmt.Println(since, until)
 	fmt.Println(from, to)
 }
 
