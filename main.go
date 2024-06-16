@@ -48,8 +48,13 @@ func main() {
 	}
 
 	from, to := strconv.FormatInt(since.Unix(), 10), strconv.FormatInt(until.Unix(), 10)
-	fmt.Println(since, until)
-	fmt.Println(from, to)
+
+	res, err := getConversations(cfg.SlackToken, cfg.GetChannelId, from, to)
+	if err != nil {
+		log.Panic(err)
+	}
+
+	fmt.Println(res)
 }
 
 var nowFunc func() time.Time
@@ -70,7 +75,7 @@ func getLastWeek() (time.Time, time.Time) {
 	return today, lw
 }
 
-func getConversation(slackToken, channelId, from, to string) ([]slack.Message, error) {
+func getConversations(slackToken, channelId, from, to string) ([]slack.Message, error) {
 	api := slack.New(slackToken)
 
 	params := slack.GetConversationHistoryParameters{ChannelID: channelId, Oldest: from, Latest: to, Limit: 1000}
