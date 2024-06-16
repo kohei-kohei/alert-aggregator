@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/caarlos0/env"
+	"github.com/slack-go/slack"
 )
 
 type config struct {
@@ -67,4 +68,20 @@ func getLastWeek() (time.Time, time.Time) {
 	lw := today.AddDate(0, 0, -7)
 
 	return today, lw
+}
+
+func getConversation(slackToken, channelId, from, to string) ([]slack.Message, error) {
+	api := slack.New(slackToken)
+
+	params := slack.GetConversationHistoryParameters{ChannelID: channelId, Oldest: from, Latest: to, Limit: 1000}
+	conv, err := api.GetConversationHistory(&params)
+	if err != nil {
+		return nil, err
+	}
+
+	if !conv.SlackResponse.Ok {
+		return nil, fmt.Errorf("error response: %s", conv.SlackResponse.Error)
+	}
+
+	return conv.Messages, nil
 }
