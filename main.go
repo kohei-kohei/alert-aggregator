@@ -10,8 +10,10 @@ import (
 )
 
 type config struct {
-	Since string `env:"SINCE"`
-	Until string `env:"UNTIL"`
+	SlackToken   string `env:"SLACK_TOKEN"`
+	GetChannelId string `env:"GET_CHANNEL_ID"`
+	Since        string `env:"SINCE"`
+	Until        string `env:"UNTIL"`
 }
 
 func main() {
