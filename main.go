@@ -11,8 +11,8 @@ import (
 )
 
 type config struct {
-	SlackToken   string `env:"SLACK_TOKEN"`
-	GetChannelId string `env:"GET_CHANNEL_ID"`
+	SlackToken   string `env:"SLACK_TOKEN,required"`
+	GetChannelId string `env:"GET_CHANNEL_ID,required"`
 	Since        string `env:"SINCE"`
 	Until        string `env:"UNTIL"`
 }
