@@ -7,11 +7,14 @@ import (
 	"time"
 
 	"github.com/caarlos0/env"
+	"github.com/slack-go/slack"
 )
 
 type config struct {
-	Since string `env:"SINCE"`
-	Until string `env:"UNTIL"`
+	SlackToken   string `env:"SLACK_TOKEN,required"`
+	GetChannelId string `env:"GET_CHANNEL_ID,required"`
+	Since        string `env:"SINCE"`
+	Until        string `env:"UNTIL"`
 }
 
 func main() {
@@ -45,8 +48,13 @@ func main() {
 	}
 
 	from, to := strconv.FormatInt(since.Unix(), 10), strconv.FormatInt(until.Unix(), 10)
-	fmt.Println(since, until)
-	fmt.Println(from, to)
+
+	res, err := getConversations(cfg.SlackToken, cfg.GetChannelId, from, to)
+	if err != nil {
+		log.Panic(err)
+	}
+
+	fmt.Println(res)
 }
 
 var nowFunc func() time.Time
@@ -65,4 +73,20 @@ func getLastWeek() (time.Time, time.Time) {
 	lw := today.AddDate(0, 0, -7)
 
 	return today, lw
+}
+
+func getConversations(slackToken, channelId, from, to string) ([]slack.Message, error) {
+	api := slack.New(slackToken)
+
+	params := slack.GetConversationHistoryParameters{ChannelID: channelId, Oldest: from, Latest: to, Limit: 1000}
+	conv, err := api.GetConversationHistory(&params)
+	if err != nil {
+		return nil, err
+	}
+
+	if !conv.SlackResponse.Ok {
+		return nil, fmt.Errorf("error response: %s", conv.SlackResponse.Error)
+	}
+
+	return conv.Messages, nil
 }
