@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"regexp"
 	"strconv"
 	"time"
 
@@ -89,4 +90,74 @@ func getConversations(slackToken, channelId, from, to string) ([]slack.Message, 
 	}
 
 	return conv.Messages, nil
+}
+
+func aggregateAlerts(messages []slack.Message) map[string]int {
+	m := map[string]int{}
+
+	for _, msg := range messages {
+		if msg.BotProfile == nil {
+			continue
+		}
+
+		bn := msg.BotProfile.Name
+		if bn == "incoming-webhook" {
+			continue
+		}
+
+		var alertTitle string
+		if bn == "Datadog" {
+			alertTitle = msg.Attachments[0].Title
+
+			if strings.Contains(alertTitle, "Recovered") {
+				continue
+			}
+
+			sep := ":"
+			if strings.Contains(alertTitle, sep) {
+				alertTitle = strings.Split(alertTitle, sep)[1]
+			}
+		} else if bn == "digdag-alert" {
+			alertTitle = msg.Attachments[0].Title
+		} else if bn == "AWS Chatbot" {
+			alertTitle = msg.Attachments[0].Fallback
+
+			if !strings.Contains(alertTitle, ":rotating_light:") {
+				continue
+			}
+
+			sep := " | "
+			if strings.Contains(alertTitle, sep) {
+				alertTitle = strings.Split(alertTitle, sep)[1]
+			}
+		} else if bn == "Sentry" {
+			alertTitle = msg.Blocks.BlockSet[0].(*slack.SectionBlock).Text.Text
+
+			sep := "*"
+			if strings.Contains(alertTitle, sep) {
+				alertTitle = strings.Split(alertTitle, sep)[1]
+			}
+		} else if bn == "PagerDuty" {
+			alertTitle = msg.Blocks.BlockSet[0].(*slack.SectionBlock).Text.Text
+
+			if !strings.Contains(alertTitle, ":large_green_circle:") {
+				continue
+			}
+
+			reg := regexp.MustCompile(`\|(.*?)>\*`)
+			match := reg.FindStringSubmatch(alertTitle)
+
+			if len(match) > 1 {
+				alertTitle = match[1]
+			}
+		} else {
+			log.Printf("This message from %s is not supported\n", bn)
+			continue
+		}
+
+		key := bn + " | " + alertTitle
+		m[key] = m[key] + 1
+	}
+
+	return m
 }
