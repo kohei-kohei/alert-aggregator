@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"log"
 	"regexp"
+	"sort"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/caarlos0/env"
@@ -55,7 +57,31 @@ func main() {
 		log.Panic(err)
 	}
 
-	fmt.Println(res)
+	alerts := aggregateAlerts(res)
+
+	keys := make([]string, 0, len(alerts))
+	for k := range alerts {
+		keys = append(keys, k)
+	}
+
+	sort.Slice(keys, func(i, j int) bool {
+		return alerts[keys[i]] > alerts[keys[j]]
+	})
+
+	var alertContent strings.Builder
+	var total int
+	for _, k := range keys {
+		v := alerts[k]
+		fmt.Fprintf(&alertContent, "%s: %d\n", k, v)
+		total += v
+	}
+
+	var output strings.Builder
+	fmt.Fprintf(&output, "%s 〜 %s\n", since, until)
+	fmt.Fprintf(&output, "total number of alerts: %d\n", total)
+	fmt.Fprintf(&output, "number of alert types: %d\n\n", len(alerts))
+
+	fmt.Print(output.String() + alertContent.String())
 }
 
 var nowFunc func() time.Time
