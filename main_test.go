@@ -11,7 +11,7 @@ func Test_getLastWeek(t *testing.T) {
 		today    time.Time
 		lastweek time.Time
 	}{
-		{"success", time.Date(2024, 3, 1, 0, 0, 0, 0, time.UTC), time.Date(2024, 2, 23, 0, 0, 0, 0, time.UTC)},
+		{"success", time.Date(2024, 3, 1, 0, 0, 0, 0, time.Local), time.Date(2024, 2, 23, 0, 0, 0, 0, time.Local)},
 	}
 
 	nowFunc = func() time.Time {
