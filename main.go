@@ -86,16 +86,16 @@ func main() {
 
 var nowFunc func() time.Time
 
-func nowUTC() time.Time {
+func now() time.Time {
 	if nowFunc != nil {
 		return nowFunc()
 	}
-	return time.Now().UTC()
+	return time.Now()
 }
 
 func getLastWeek() (time.Time, time.Time) {
-	y, m, d := nowUTC().Date()
-	today := time.Date(y, m, d, 0, 0, 0, 0, time.UTC)
+	y, m, d := now().Date()
+	today := time.Date(y, m, d, 0, 0, 0, 0, time.Local)
 
 	lw := today.AddDate(0, 0, -7)
 
