@@ -14,10 +14,11 @@ import (
 )
 
 type config struct {
-	SlackToken   string `env:"SLACK_TOKEN,required"`
-	GetChannelId string `env:"GET_CHANNEL_ID,required"`
-	Since        string `env:"SINCE"`
-	Until        string `env:"UNTIL"`
+	SlackToken    string `env:"SLACK_TOKEN,required"`
+	GetChannelId  string `env:"GET_CHANNEL_ID,required"`
+	SendChannelId string `env:"SEND_CHANNEL_ID"`
+	Since         string `env:"SINCE"`
+	Until         string `env:"UNTIL"`
 }
 
 func main() {
@@ -80,8 +81,13 @@ func main() {
 	fmt.Fprintf(&output, "%s 〜 %s\n", since, until)
 	fmt.Fprintf(&output, "total number of alerts: %d\n", total)
 	fmt.Fprintf(&output, "number of alert types: %d\n\n", len(alerts))
+	output.WriteString(alertContent.String())
 
-	fmt.Print(output.String() + alertContent.String())
+	fmt.Print(output.String())
+
+	if cfg.SendChannelId != "" {
+		sendToSlack(cfg.SlackToken, cfg.SendChannelId, output.String())
+	}
 }
 
 var nowFunc func() time.Time
@@ -186,4 +192,13 @@ func aggregateAlerts(messages []slack.Message) map[string]int {
 	}
 
 	return m
+}
+
+func sendToSlack(slackToken, channelId, text string) {
+	api := slack.New(slackToken)
+
+	_, _, err := api.PostMessage(channelId, slack.MsgOptionText(text, false))
+	if err != nil {
+		log.Panic(err)
+	}
 }
