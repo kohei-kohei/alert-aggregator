@@ -86,7 +86,9 @@ func main() {
 	fmt.Print(output.String())
 
 	if cfg.SendChannelId != "" {
-		sendToSlack(cfg.SlackToken, cfg.SendChannelId, output.String())
+		if err := sendToSlack(cfg.SlackToken, cfg.SendChannelId, output.String()); err != nil {
+			log.Panic(err)
+		}
 	}
 }
 
@@ -194,11 +196,9 @@ func aggregateAlerts(messages []slack.Message) map[string]int {
 	return m
 }
 
-func sendToSlack(slackToken, channelId, text string) {
+func sendToSlack(slackToken, channelId, text string) error {
 	api := slack.New(slackToken)
 
 	_, _, err := api.PostMessage(channelId, slack.MsgOptionText(text, false))
-	if err != nil {
-		log.Panic(err)
-	}
+	return err
 }
