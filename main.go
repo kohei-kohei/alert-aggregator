@@ -59,9 +59,9 @@ func main() {
 	}
 
 	var output strings.Builder
-	fmt.Fprintf(&output, "%s 〜 %s\n", since, until)
-	fmt.Fprintf(&output, "total number of alerts: %d\n", total)
-	fmt.Fprintf(&output, "number of alert types: %d\n\n", len(alerts))
+	fmt.Fprintf(&output, "Aggregatation Period: %s 〜 %s\n", since, until)
+	fmt.Fprintf(&output, "Total number of alerts: %d\n", total)
+	fmt.Fprintf(&output, "Number of alert types: %d\n\n", len(alerts))
 	output.WriteString(alertContent.String())
 
 	fmt.Print(output.String())
@@ -124,6 +124,7 @@ func getAggregationPeriod(sinceStr, untilStr string) (time.Time, time.Time, erro
 }
 
 func getConversations(slackToken, channelId, from, to string) ([]slack.Message, error) {
+	return nil, nil
 	api := slack.New(slackToken)
 
 	params := slack.GetConversationHistoryParameters{ChannelID: channelId, Oldest: from, Latest: to, Limit: 1000}
