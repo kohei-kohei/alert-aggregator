@@ -27,28 +27,9 @@ func main() {
 		log.Panic(err)
 	}
 
-	today, lw := getLastWeek()
-
-	var since time.Time
-	if cfg.Since == "" {
-		since = lw
-	} else {
-		var err error
-		since, err = time.Parse(time.RFC3339, cfg.Since)
-		if err != nil {
-			log.Panic(err)
-		}
-	}
-
-	var until time.Time
-	if cfg.Until == "" {
-		until = today
-	} else {
-		var err error
-		until, err = time.Parse(time.RFC3339, cfg.Until)
-		if err != nil {
-			log.Panic(err)
-		}
+	since, until, err := getAggregationPeriod(cfg.Since, cfg.Until)
+	if err != nil {
+		log.Panic(err)
 	}
 
 	from, to := strconv.FormatInt(since.Unix(), 10), strconv.FormatInt(until.Unix(), 10)
@@ -108,6 +89,38 @@ func getLastWeek() (time.Time, time.Time) {
 	lw := today.AddDate(0, 0, -7)
 
 	return today, lw
+}
+
+func getAggregationPeriod(sinceStr, untilStr string) (time.Time, time.Time, error) {
+	today, lw := getLastWeek()
+
+	var since time.Time
+	if sinceStr == "" {
+		since = lw
+	} else {
+		var err error
+		since, err = time.Parse(time.RFC3339, sinceStr)
+		if err != nil {
+			return time.Time{}, time.Time{}, err
+		}
+	}
+
+	var until time.Time
+	if untilStr == "" {
+		until = today
+	} else {
+		var err error
+		until, err = time.Parse(time.RFC3339, untilStr)
+		if err != nil {
+			return time.Time{}, time.Time{}, err
+		}
+	}
+
+	if since.After(until) {
+		return time.Time{}, time.Time{}, fmt.Errorf("invalid period: 'since' (%s) is after 'until' (%s)", since, until)
+	}
+
+	return since, until, nil
 }
 
 func getConversations(slackToken, channelId, from, to string) ([]slack.Message, error) {
