@@ -1,8 +1,11 @@
 package main
 
 import (
+	"reflect"
 	"testing"
 	"time"
+
+	"github.com/slack-go/slack"
 )
 
 func Test_getLastWeek(t *testing.T) {
@@ -67,6 +70,25 @@ func Test_getAggregationPeriod(t *testing.T) {
 			}
 			if !got2.Equal(tt.until) {
 				t.Errorf("getAggregationPeriod() got2 = %v, want %v", got2, tt.until)
+			}
+		})
+	}
+}
+
+func Test_aggregateAlerts(t *testing.T) {
+	tests := []struct {
+		name string
+		arg  []slack.Message
+		want map[string]int
+	}{
+		{"empty messsage", []slack.Message{}, map[string]int{}},
+		{"bot messsages are not alert", []slack.Message{{Msg: slack.Msg{BotProfile: &slack.BotProfile{Name: "BotName"}}}, {Msg: slack.Msg{BotProfile: &slack.BotProfile{Name: "incoming-webhook"}}}}, map[string]int{}},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := aggregateAlerts(tt.arg); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("aggregateAlerts() = %v, want %v", got, tt.want)
 			}
 		})
 	}
