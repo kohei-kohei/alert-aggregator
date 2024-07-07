@@ -124,7 +124,6 @@ func getAggregationPeriod(sinceStr, untilStr string) (time.Time, time.Time, erro
 }
 
 func getConversations(slackToken, channelId, from, to string) ([]slack.Message, error) {
-	return nil, nil
 	api := slack.New(slackToken)
 
 	params := slack.GetConversationHistoryParameters{ChannelID: channelId, Oldest: from, Latest: to, Limit: 1000}
