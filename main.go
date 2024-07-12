@@ -167,9 +167,12 @@ func aggregateAlerts(messages []slack.Message) map[string]int {
 		} else if bn == "digdag-alert" {
 			alertTitle = msg.Attachments[0].Title
 		} else if bn == "AWS Chatbot" {
+			if len(msg.Attachments) == 0 {
+				continue
+			}
 			alertTitle = msg.Attachments[0].Fallback
 
-			if !strings.Contains(alertTitle, ":rotating_light:") {
+			if !strings.Contains(alertTitle, "🚨") {
 				continue
 			}
 
