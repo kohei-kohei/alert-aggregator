@@ -4,10 +4,10 @@ on:
       - main
 
 jobs:
-  unit-test:
+  aggregate-test:
     runs-on: ubuntu-latest
     steps:
-      - uses: kohei-kohei/alert-aggregator@09d794fdf592ff432b7c9ecad40eb2000ff8529c
+      - uses: ./
         env:
           SLACK_TOKEN: ${{ secrets.SLACK_TOKEN }}
         with:
