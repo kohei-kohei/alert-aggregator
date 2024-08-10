@@ -19,10 +19,6 @@ inputs:
     description: 'End of the aggregation period'
     required: false
 
-outputs:
-  result:
-    description: 'Aggregated alert result'
-
 runs:
   using: 'docker'
   image: 'Dockerfile'
