@@ -1,0 +1,14 @@
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  unit-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: kohei-kohei/alert-aggregator@09d794fdf592ff432b7c9ecad40eb2000ff8529c
+        env:
+          SLACK_TOKEN: ${{ secrets.SLACK_TOKEN }}
+        with:
+          get-channnel-id: 'C069MM8H0EN'
