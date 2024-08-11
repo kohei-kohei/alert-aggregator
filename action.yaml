@@ -13,10 +13,10 @@ inputs:
     description: 'Slack channel id to send aggregated results'
     required: false
   since:
-    description: 'Beginning of the aggregation period'
+    description: 'Beginning of the aggregation period. RFC3339 compliant date format.'
     required: false
   until:
-    description: 'End of the aggregation period'
+    description: 'End of the aggregation period. RFC3339 compliant date format.'
     required: false
 
 runs:
