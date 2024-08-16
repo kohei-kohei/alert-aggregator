@@ -14,7 +14,7 @@ import (
 )
 
 type config struct {
-	SlackToken    string `env:"SLACK_TOKEN,required"`
+	SlackToken    string `env:"SLACK_BOT_TOKEN,required"`
 	GetChannelId  string `env:"GET_CHANNEL_ID,required"`
 	SendChannelId string `env:"SEND_CHANNEL_ID"`
 	Since         string `env:"SINCE"`
