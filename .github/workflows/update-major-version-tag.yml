@@ -17,7 +17,7 @@ jobs:
         run: |
           release_tag=${GITHUB_REF#refs/tags/}
           echo "release tag: $release_tag"
-          major_version=$(echo $release_tag | cut -d '.' -f 1)
+          major_version=$(echo "$release_tag" | grep -E '^v' | cut -d '.' -f 1)
           echo "MAJOR_VERSION=$major_version" >> $GITHUB_ENV
 
       - name: Push major version tag
