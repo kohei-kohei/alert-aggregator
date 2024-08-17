@@ -1,0 +1,24 @@
+name: Update Major Version Tag
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  update-major-version-tag:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Get the major version from the release tag
+        run: |
+          release_tag=${GITHUB_REF#refs/tags/}
+          echo "release tag: $release_tag"
+          major_version=$(echo "$release_tag" | grep -E '^v' | cut -d '.' -f 1)
+          echo "major version: $major_version"
+          echo "MAJOR_VERSION=$major_version" >> $GITHUB_ENV
+
+      - name: Push major version tag
+        run: |
+          git tag -f $MAJOR_VERSION
+          git push origin --force $MAJOR_VERSION
