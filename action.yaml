@@ -6,12 +6,6 @@ branding:
   color: 'purple'
 
 inputs:
-  get-channel-id:
-    description: 'Slack channel id to aggregate alerts from'
-    required: true
-  send-channel-id:
-    description: 'Slack channel id to send aggregated results'
-    required: false
   since:
     description: 'Beginning of the aggregation period. RFC3339 compliant date format.'
     required: false
@@ -23,7 +17,5 @@ runs:
   using: 'docker'
   image: 'Dockerfile'
   env:
-    GET_CHANNEL_ID: ${{ inputs.get-channel-id }}
-    SEND_CHANNEL_ID: ${{ inputs.send-channel-id }}
     SINCE: ${{ inputs.since }}
     UNTIL: ${{ inputs.until }}
