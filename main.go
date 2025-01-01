@@ -32,7 +32,8 @@ func main() {
 		log.Panic(err)
 	}
 
-	from, to := strconv.FormatInt(since.Unix(), 10), strconv.FormatInt(until.Unix(), 10)
+	from := strconv.FormatInt(since.Unix(), 10)
+	to := strconv.FormatInt(until.Unix(), 10)
 
 	res, err := getConversations(cfg.SlackToken, cfg.GetChannelId, from, to)
 	if err != nil {
