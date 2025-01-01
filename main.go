@@ -27,6 +27,10 @@ func main() {
 		log.Panic(err)
 	}
 
+	channelName, _ := getChannelName(cfg.SlackToken, cfg.GetChannelId)
+	fmt.Print(channelName)
+	return
+
 	since, until, err := getAggregationPeriod(cfg.Since, cfg.Until)
 	if err != nil {
 		log.Panic(err)
@@ -60,7 +64,8 @@ func main() {
 	}
 
 	var output strings.Builder
-	fmt.Fprintf(&output, "Aggregatation Period: %s 〜 %s\n", since, until)
+	fmt.Fprintf(&output, "From: #%s\n", channelName)
+	fmt.Fprintf(&output, "Period: %s 〜 %s\n", since, until)
 	fmt.Fprintf(&output, "Total number of alerts: %d\n", total)
 	fmt.Fprintf(&output, "Number of alert types: %d\n\n", len(alerts))
 	output.WriteString(alertContent.String())
@@ -122,6 +127,21 @@ func getAggregationPeriod(sinceStr, untilStr string) (time.Time, time.Time, erro
 	}
 
 	return since, until, nil
+}
+
+func getChannelName(slackToken, channelId string) (string, error) {
+	log.Println("情報を取得するよ")
+	api := slack.New(slackToken)
+
+	input := slack.GetConversationInfoInput{ChannelID: channelId}
+	channel, err := api.GetConversationInfo(&input)
+	if err != nil {
+		log.Printf("情報を取得できませんでした: %s\n", err)
+		return "", err
+	}
+
+	log.Printf("Channel Name: %s\n", channel.Name)
+	return channel.Name, nil
 }
 
 func getConversations(slackToken, channelId, from, to string) ([]slack.Message, error) {
