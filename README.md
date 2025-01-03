@@ -12,6 +12,8 @@ This action roughly aggregates alerts that are being sent to Slack. The followin
 
 This action requires a [Slack App](https://api.slack.com/quickstart) with [conversations.history](https://api.slack.com/methods/conversations.history) permissions, which must be added to the target channel. Please note that `conversations.history` is limited to 999 messages without pagination, so longer periods may miss alerts.
 
+Additionally, if you need to retrieve the channel name, please include the [channels:read](https://api.slack.com/scopes/channels:read) scope.
+
 To send results to Slack, the Slack App needs [chat.postMessage](https://api.slack.com/methods/chat.postMessage) permission.
 
 ## Environment Variables
