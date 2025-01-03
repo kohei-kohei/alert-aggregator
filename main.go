@@ -32,14 +32,39 @@ func main() {
 		log.Panic(err)
 	}
 
-	from, to := strconv.FormatInt(since.Unix(), 10), strconv.FormatInt(until.Unix(), 10)
+	channelNameCh := make(chan string, 1)
+	go func() {
+		name, err := getChannelName(cfg.SlackToken, cfg.GetChannelId)
+		if err != nil {
+			log.Printf("Failed to get the Slack channel name due to %v, but continuing the process.", err)
+			channelNameCh <- ""
+			return
+		}
+		channelNameCh <- name
+	}()
 
-	res, err := getConversations(cfg.SlackToken, cfg.GetChannelId, from, to)
-	if err != nil {
-		log.Panic(err)
+	messagesCh := make(chan []slack.Message, 1)
+	go func() {
+		from := strconv.FormatInt(since.Unix(), 10)
+		to := strconv.FormatInt(until.Unix(), 10)
+
+		msgs, err := getConversations(cfg.SlackToken, cfg.GetChannelId, from, to)
+		if err != nil {
+			log.Printf("Failed to get the conversation history: %v", err)
+			messagesCh <- nil
+			return
+		}
+		messagesCh <- msgs
+	}()
+
+	channelName := <-channelNameCh
+	messages := <-messagesCh
+
+	if messages == nil {
+		log.Panic("Terminating because the conversation history could not be retrieved.")
 	}
 
-	alerts := aggregateAlerts(res)
+	alerts := aggregateAlerts(messages)
 
 	keys := make([]string, 0, len(alerts))
 	for k := range alerts {
@@ -59,9 +84,12 @@ func main() {
 	}
 
 	var output strings.Builder
-	fmt.Fprintf(&output, "Aggregatation Period: %s 〜 %s\n", since, until)
-	fmt.Fprintf(&output, "Total number of alerts: %d\n", total)
-	fmt.Fprintf(&output, "Number of alert types: %d\n\n", len(alerts))
+	if channelName != "" {
+		fmt.Fprintf(&output, "Channel: #%s\n", channelName)
+	}
+	fmt.Fprintf(&output, "Period: %s 〜 %s\n", since, until)
+	fmt.Fprintf(&output, "Total Alerts: %d\n", total)
+	fmt.Fprintf(&output, "Distinct Alert Types: %d\n\n", len(alerts))
 	output.WriteString(alertContent.String())
 
 	fmt.Print(output.String())
@@ -121,6 +149,18 @@ func getAggregationPeriod(sinceStr, untilStr string) (time.Time, time.Time, erro
 	}
 
 	return since, until, nil
+}
+
+func getChannelName(slackToken, channelId string) (string, error) {
+	api := slack.New(slackToken)
+
+	input := slack.GetConversationInfoInput{ChannelID: channelId}
+	channel, err := api.GetConversationInfo(&input)
+	if err != nil {
+		return "", err
+	}
+
+	return channel.Name, nil
 }
 
 func getConversations(slackToken, channelId, from, to string) ([]slack.Message, error) {
