@@ -85,11 +85,11 @@ func main() {
 
 	var output strings.Builder
 	if channelName != "" {
-		fmt.Fprintf(&output, "From: #%s\n", channelName)
+		fmt.Fprintf(&output, "Channel: #%s\n", channelName)
 	}
 	fmt.Fprintf(&output, "Period: %s 〜 %s\n", since, until)
-	fmt.Fprintf(&output, "Total number of alerts: %d\n", total)
-	fmt.Fprintf(&output, "Number of alert types: %d\n\n", len(alerts))
+	fmt.Fprintf(&output, "Total Alerts: %d\n", total)
+	fmt.Fprintf(&output, "Distinct Alert Types: %d\n\n", len(alerts))
 	output.WriteString(alertContent.String())
 
 	fmt.Print(output.String())
