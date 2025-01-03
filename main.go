@@ -27,24 +27,44 @@ func main() {
 		log.Panic(err)
 	}
 
-	channelName, _ := getChannelName(cfg.SlackToken, cfg.GetChannelId)
-	fmt.Print(channelName)
-	return
-
 	since, until, err := getAggregationPeriod(cfg.Since, cfg.Until)
 	if err != nil {
 		log.Panic(err)
 	}
 
-	from := strconv.FormatInt(since.Unix(), 10)
-	to := strconv.FormatInt(until.Unix(), 10)
+	channelNameCh := make(chan string, 1)
+	go func() {
+		name, err := getChannelName(cfg.SlackToken, cfg.GetChannelId)
+		if err != nil {
+			log.Printf("Failed to get the Slack channel name due to %v, but continuing the process.", err)
+			channelNameCh <- ""
+			return
+		}
+		channelNameCh <- name
+	}()
 
-	res, err := getConversations(cfg.SlackToken, cfg.GetChannelId, from, to)
-	if err != nil {
-		log.Panic(err)
+	messagesCh := make(chan []slack.Message, 1)
+	go func() {
+		from := strconv.FormatInt(since.Unix(), 10)
+		to := strconv.FormatInt(until.Unix(), 10)
+
+		msgs, err := getConversations(cfg.SlackToken, cfg.GetChannelId, from, to)
+		if err != nil {
+			log.Printf("Failed to get the conversation history: %v", err)
+			messagesCh <- nil
+			return
+		}
+		messagesCh <- msgs
+	}()
+
+	channelName := <-channelNameCh
+	messages := <-messagesCh
+
+	if messages == nil {
+		log.Panic("Terminating because the conversation history could not be retrieved.")
 	}
 
-	alerts := aggregateAlerts(res)
+	alerts := aggregateAlerts(messages)
 
 	keys := make([]string, 0, len(alerts))
 	for k := range alerts {
@@ -64,7 +84,9 @@ func main() {
 	}
 
 	var output strings.Builder
-	fmt.Fprintf(&output, "From: #%s\n", channelName)
+	if channelName != "" {
+		fmt.Fprintf(&output, "From: #%s\n", channelName)
+	}
 	fmt.Fprintf(&output, "Period: %s 〜 %s\n", since, until)
 	fmt.Fprintf(&output, "Total number of alerts: %d\n", total)
 	fmt.Fprintf(&output, "Number of alert types: %d\n\n", len(alerts))
@@ -130,17 +152,14 @@ func getAggregationPeriod(sinceStr, untilStr string) (time.Time, time.Time, erro
 }
 
 func getChannelName(slackToken, channelId string) (string, error) {
-	log.Println("情報を取得するよ")
 	api := slack.New(slackToken)
 
 	input := slack.GetConversationInfoInput{ChannelID: channelId}
 	channel, err := api.GetConversationInfo(&input)
 	if err != nil {
-		log.Printf("情報を取得できませんでした: %s\n", err)
 		return "", err
 	}
 
-	log.Printf("Channel Name: %s\n", channel.Name)
 	return channel.Name, nil
 }
 
