@@ -221,9 +221,9 @@ func aggregateAlerts(messages []slack.Message) map[string]int {
 				alertTitle = strings.Split(alertTitle, sep)[1]
 			}
 		} else if bn == "Sentry" {
-			alertTitle = msg.Blocks.BlockSet[0].(*slack.SectionBlock).Text.Text
+			alertTitle = msg.Msg.Text
 
-			sep := "*"
+			sep := " "
 			if strings.Contains(alertTitle, sep) {
 				alertTitle = strings.Split(alertTitle, sep)[1]
 			}
