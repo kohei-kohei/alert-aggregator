@@ -11,5 +11,5 @@ docker build . -t alert-aggregator
 Please put appropriate values in the environment variables.
 
 ```shell
-docker run --rm -e SLACK_BOT_TOKEN="xxxx" -e GET_CHANNEL_ID="xxxx" -e SEND_CHANNEL_ID="" -e Since="" -e Until="" alert-aggregator
+docker run --rm -e SLACK_BOT_TOKEN="xxxx" -e GET_CHANNEL_ID="xxxx" -e SEND_CHANNEL_ID="" -e SINCE="" -e UNTIL="" alert-aggregator
 ```
